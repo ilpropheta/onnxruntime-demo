@@ -1,0 +1,2 @@
+Unzip opencv_world440d.zip in this folder
+(zippped due to GitHub large files limitation)
