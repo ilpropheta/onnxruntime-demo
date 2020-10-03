@@ -50,7 +50,7 @@ void Demo::RunResNet()
 	// iterate over the .jpg contained in the input folder
 	Utils::ForEachImage(".jpg", "data", [&](cv::Mat& image, const auto& imagePath) {
 
-		// PreprocessImageForMobileNet data and return an xtensor-specific tensor
+		// PreprocessImageForResNet data and return an xtensor-specific tensor
 		auto inputTensor = PreprocessImageForResNet(image);
 		std::vector<int64_t> inputShape(inputTensor.shape().begin(), inputTensor.shape().end());
 		auto onnxInputTensor = Ort::Value::CreateTensor<float>(memoryInfo, 
@@ -64,7 +64,7 @@ void Demo::RunResNet()
 		std::cout << "inference elapsed: " << chrono::duration_cast<chrono::milliseconds>(std::chrono::system_clock::now() - tic).count() << "\n";
 		
 		auto outputTensor = Utils::AsSpan(onnxOutputTensor[0]);
-
+		
 		Utils::softmax(outputTensor);
 
 		const auto idx = distance(begin(outputTensor), max_element(begin(outputTensor), end(outputTensor)));

@@ -278,7 +278,7 @@ void Demo::RunMobileNet()
 
 	auto outShape = GetOutputShape(session, 0);
 	const auto classes = static_cast<int>(outShape[2]);
-
+	 
 	const auto colors = Drawing::MakeColors(classes);
 	
 	std::vector inputNames = Utils::OnnxGetInputNames(session);
@@ -290,8 +290,6 @@ void Demo::RunMobileNet()
 	// iterate over the .jpg contained in the input folder
 	ForEachImage(".jpg", "data", [&](cv::Mat& frame, const auto& imagePath) {
 
-		// since the model itself is generated from PyTorch, we need to convert
-		// the frame from OpenCV format {w, h, channels} to PyTorch tensor format {batch, channels, w, h} that is {1, 3, w, h }
 		auto inputTensor = PreprocessImageForMobileNet(frame);
 
 		try

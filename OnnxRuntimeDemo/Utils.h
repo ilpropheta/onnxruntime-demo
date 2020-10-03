@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <numeric>
 #include <algorithm>
+#include <thread>
 #include "span.h"
 
 namespace Ort
@@ -44,6 +45,37 @@ namespace Utils
 			{
 				auto image = cv::imread(p.path().string(), cv::IMREAD_COLOR);
 				action(image, p.path());
+			}
+		}
+	}
+
+	struct defer_join_all
+	{
+		std::vector<std::thread>& threads;
+		
+		~defer_join_all()
+		{
+			for (auto& t : threads)
+			{
+				t.join();
+			}
+		}
+	};
+	
+	template<typename Action>
+	void ParallelForEachImage(const char* extension, const char* imgPath, Action action)
+	{
+		std::vector<std::thread> threads;
+		defer_join_all guard{ threads };
+		
+		for (auto& p : std::filesystem::directory_iterator(imgPath))
+		{
+			if (p.is_regular_file() && p.path().extension() == extension)
+			{
+				threads.emplace_back([thisPath = p.path(), action] {
+					auto image = cv::imread(thisPath.string(), cv::IMREAD_COLOR);
+					action(image, thisPath);
+				});
 			}
 		}
 	}

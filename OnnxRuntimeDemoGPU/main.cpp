@@ -14,12 +14,18 @@ int main()
 	// you can create one environment per process (each environment manages an internal thread pool)
 	Ort::Env env;
 
+	system("pause");
+	
 	Ort::SessionOptions session_options;
 	OrtSessionOptionsAppendExecutionProvider_CUDA(session_options, 0);
 	Ort::Session session{ env, LR"(data\linear.onnx)", session_options };
 
 	// cuda should be here
 	auto providers = Ort::GetAvailableProviders();
+
+	cout << "Available providers: ";
+	copy(begin(providers), end(providers), ostream_iterator<string>(cout, " "));
+	cout << "\n";
 	
 	// Ort::Session gives access to input and output information:
 	// - count
@@ -45,6 +51,8 @@ int main()
 	// where to allocate the tensors
 	auto memoryInfo = Ort::MemoryInfo::CreateCpu(OrtDeviceAllocator, OrtMemTypeCPU);
 
+	system("pause");
+	
 	// create the input tensor (this is not a deep copy!)
 	auto inputOnnxTensor = Ort::Value::CreateTensor<float>(memoryInfo, inputValues.data(), inputValues.size(), inputShape.data(), inputShape.size());
 
