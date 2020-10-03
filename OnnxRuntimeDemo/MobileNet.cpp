@@ -160,8 +160,8 @@ std::vector<Box> MobileNetPostprocess(span<float> confidences_h, span<float> loc
 
 	ConvertLocationsToBoxesAndCenter(nPriors, locations_h, priors);
 
-	int width = originalSize.width;
-	int height = originalSize.height;
+	const int width = originalSize.width;
+	const int height = originalSize.height;
 	const float IoUThreshold = 0.45f;
 
 	std::vector<Box> detected;
@@ -223,12 +223,12 @@ tuple<int, int, float> SoftMax(int candidates, int classNum, span<float> scores)
 
 	for (auto i = 0; i < candidates; ++i)
 	{
-		auto disp = classNum * i;
+		const auto disp = classNum * i;
 		// remember to skip the first column because it's the background!
 		//                                      v
 		span subv(scores.data() + disp + 0, scores.data() + disp + classNum);
 		softmax(subv);
-		auto subvmax = max_element(begin(subv), end(subv));
+		const auto subvmax = max_element(begin(subv), end(subv));
 
 		if (*subvmax > maxval)
 		{
@@ -241,10 +241,10 @@ tuple<int, int, float> SoftMax(int candidates, int classNum, span<float> scores)
 	return { maxidx, bestcandidate, maxval };
 }
 
-std::vector<Box> Postprocess(Ort::Value& scoresTensor, Ort::Value& boxesTensor, cv::Size originalSize, float confThreshold)
+std::vector<Box> Postprocess(Ort::Value& scoresTensor, Ort::Value& boxesTensor, const cv::Size& originalSize, float confThreshold)
 {
-	auto scores = Utils::AsSpan(scoresTensor);
-	auto boxes = Utils::AsSpan(boxesTensor);
+	const auto scores = Utils::AsSpan(scoresTensor);
+	const auto boxes = Utils::AsSpan(boxesTensor);
 
 	const auto scoresShape = scoresTensor.GetTensorTypeAndShapeInfo().GetShape();
 	const auto candidates = static_cast<int>(scoresShape[1]);
@@ -260,7 +260,7 @@ std::vector<Box> Postprocess(Ort::Value& scoresTensor, Ort::Value& boxesTensor, 
 
 static auto PreprocessImageForMobileNet(const cv::Mat& frame)
 {
-	auto prepocessed = RemoveMeanDivideByStd(frame, { 512, 512 });
+	const auto prepocessed = RemoveMeanDivideByStd(frame, { 512, 512 });
 	xt::xarray<float> tens = xt::adapt(reinterpret_cast<float*>(prepocessed.data), { 1, prepocessed.cols, prepocessed.rows, 3 });
 	return xt::eval(xt::transpose(std::move(tens), { 0, 3, 1, 2 }));
 }
@@ -270,8 +270,8 @@ void Demo::RunMobileNet()
 	InitPriors();
 	
 	Ort::Env env;
-	
-	Ort::SessionOptions sessionOpts;
+
+	const Ort::SessionOptions sessionOpts;
 	Ort::Session session{ env, LR"(data\mobileNet.onnx)", sessionOpts };
 
 	auto memoryInfo = Ort::MemoryInfo::CreateCpu(OrtDeviceAllocator, OrtMemTypeCPU);
@@ -303,7 +303,7 @@ void Demo::RunMobileNet()
 				inputsAsConstCharPtr.data(), &onnxInputTensor, inputsAsConstCharPtr.size(),
 				outputsAsConstCharPtr.data(), outputsAsConstCharPtr.size());
 
-			auto detectedBoundingBoxes = Postprocess(onnxOutputTensor[0], onnxOutputTensor[1], frame.size(), 0.3f);
+			const auto detectedBoundingBoxes = Postprocess(onnxOutputTensor[0], onnxOutputTensor[1], frame.size(), 0.3f);
 
 			// save output images with detected bounding boxes
 			Drawing::DrawBoundingBoxes(frame, detectedBoundingBoxes, colors);
