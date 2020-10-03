@@ -50,21 +50,20 @@ std::vector<float> GenerateSDDPriors(const std::array<SSDSpec, N_SSDSPEC>& specs
 	std::vector<float> priors(N_COORDS * nPriors);
 
 	int i_prio = 0;
-	float scale, x_center, y_center, h, w, ratio;
-	int min, max;
+	float w;
 	for (int i = 0; i < N_SSDSPEC; i++)
 	{
-		scale = imageSize / (float)specs[i].shrinkage;
-		min = specs[i].boxHeight > specs[i].boxWidth ? specs[i].boxWidth : specs[i].boxHeight;
-		max = specs[i].boxHeight < specs[i].boxWidth ? specs[i].boxWidth : specs[i].boxHeight;
+		const float scale = imageSize / (float)specs[i].shrinkage;
+		const int min = specs[i].boxHeight > specs[i].boxWidth ? specs[i].boxWidth : specs[i].boxHeight;
+		const int max = specs[i].boxHeight < specs[i].boxWidth ? specs[i].boxWidth : specs[i].boxHeight;
 		for (int j = 0; j < specs[i].featureSize; j++) 
 		{
 			for (int k = 0; k < specs[i].featureSize; k++) 
 			{
 				//small sized square box
-				x_center = (k + 0.5f) / scale;
-				y_center = (j + 0.5f) / scale;
-				h = w = min / imageSize;
+				const float x_center = (k + 0.5f) / scale;
+				const float y_center = (j + 0.5f) / scale;
+				float h = w = min / imageSize;
 
 				priors[i_prio * N_COORDS + 0] = x_center;
 				priors[i_prio * N_COORDS + 1] = y_center;
@@ -83,7 +82,7 @@ std::vector<float> GenerateSDDPriors(const std::array<SSDSpec, N_SSDSPEC>& specs
 
 				//change h/w ratio of the small sized box
 				h = w = min / imageSize;
-				ratio = sqrtf(static_cast<float>(specs[i].ratio1));
+				float ratio = sqrtf(static_cast<float>(specs[i].ratio1));
 				priors[i_prio * N_COORDS + 0] = x_center;
 				priors[i_prio * N_COORDS + 1] = y_center;
 				priors[i_prio * N_COORDS + 2] = w * ratio;
@@ -121,7 +120,6 @@ std::vector<float> GenerateSDDPriors(const std::array<SSDSpec, N_SSDSPEC>& specs
 
 void ConvertLocationsToBoxesAndCenter(size_t nPriors, span<float> locations_h, span<const float> priors)
 {
-	float cur_x, cur_y;
 	for (auto i = 0u; i < nPriors; i++)
 	{
 		locations_h[i * N_COORDS + 0] = locations_h[i * N_COORDS + 0] * centerVariance * priors[i * N_COORDS + 2] + priors[i * N_COORDS + 0];
@@ -129,8 +127,8 @@ void ConvertLocationsToBoxesAndCenter(size_t nPriors, span<float> locations_h, s
 		locations_h[i * N_COORDS + 2] = exp(locations_h[i * N_COORDS + 2] * sizeVariance) * priors[i * N_COORDS + 2];
 		locations_h[i * N_COORDS + 3] = exp(locations_h[i * N_COORDS + 3] * sizeVariance) * priors[i * N_COORDS + 3];
 
-		cur_x = locations_h[i * N_COORDS + 0];
-		cur_y = locations_h[i * N_COORDS + 1];
+		const auto cur_x = locations_h[i * N_COORDS + 0];
+		const auto cur_y = locations_h[i * N_COORDS + 1];
 
 		locations_h[i * N_COORDS + 0] = cur_x - locations_h[i * N_COORDS + 2] / 2;
 		locations_h[i * N_COORDS + 1] = cur_y - locations_h[i * N_COORDS + 3] / 2;
@@ -166,10 +164,9 @@ std::vector<Box> MobileNetPostprocess(span<float> confidences_h, span<float> loc
 
 	std::vector<Box> detected;
 
-	float* conf_per_class;
 	for (int i = 1; i < classes; i++) 
 	{
-		conf_per_class = &confidences_h[i * nPriors];
+		const auto conf_per_class = &confidences_h[i * nPriors];
 		std::vector<Box> boxes;
 		for (int j = 0; j < nPriors; j++) 
 		{
@@ -190,7 +187,7 @@ std::vector<Box> MobileNetPostprocess(span<float> confidences_h, span<float> loc
 		std::sort(boxes.begin(), boxes.end(), GreaterProbability);
 
 		std::vector<Box> remaining;
-		while (boxes.size() > 0) 
+		while (!boxes.empty()) 
 		{
 			remaining.clear();
 
