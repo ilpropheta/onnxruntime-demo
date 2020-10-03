@@ -33,6 +33,21 @@ namespace Utils
 		}
 	}
 
+	template<typename Action>
+	void ForEachImage_N(const char* extension, const char* imgPath, int N, Action action)
+	{
+		for (auto& p : std::filesystem::directory_iterator(imgPath))
+		{
+			if (N-- == 0)
+				break;
+			if (p.is_regular_file() && p.path().extension() == extension)
+			{
+				auto image = cv::imread(p.path().string(), cv::IMREAD_COLOR);
+				action(image, p.path());
+			}
+		}
+	}
+
 	template<typename T>
 	void softmax(span<T> data)
 	{

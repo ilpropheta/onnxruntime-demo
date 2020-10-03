@@ -270,7 +270,10 @@ void Demo::RunMobileNet()
 	InitPriors();
 	
 	Ort::Env env;
-	Ort::Session session{ env, LR"(data\mobileNet.onnx)", Ort::SessionOptions{nullptr} };
+	
+	Ort::SessionOptions sessionOpts;
+	Ort::Session session{ env, LR"(data\mobileNet.onnx)", sessionOpts };
+
 	auto memoryInfo = Ort::MemoryInfo::CreateCpu(OrtDeviceAllocator, OrtMemTypeCPU);
 
 	auto outShape = GetOutputShape(session, 0);

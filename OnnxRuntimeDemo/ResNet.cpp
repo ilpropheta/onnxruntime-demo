@@ -6,6 +6,7 @@
 #include <xtensor/xmanipulation.hpp>
 #include <xtensor/xview.hpp>
 #include "Utils.h"
+#include <chrono>
 
 using namespace std;
 
@@ -34,7 +35,7 @@ auto PreprocessImageForResNet(const cv::Mat& frame)
 void Demo::RunResNet()
 {
 	Ort::Env env;
-	Ort::Session session{ env, LR"(data\resnet50v2.onnx)", Ort::SessionOptions{nullptr} };
+	Ort::Session session{ env, LR"(data\resnet50v2.onnx)", Ort::SessionOptions{} };
 	auto memoryInfo = Ort::MemoryInfo::CreateCpu(OrtDeviceAllocator, OrtMemTypeCPU);
 
 	// classes for inference
@@ -56,10 +57,12 @@ void Demo::RunResNet()
 			inputTensor.data(), inputTensor.size(), 
 			inputShape.data(), inputShape.size());
 
+		const auto tic = std::chrono::system_clock::now();
 		auto onnxOutputTensor = session.Run(Ort::RunOptions{ nullptr },
 			inputsAsConstCharPtr.data(), &onnxInputTensor, inputsAsConstCharPtr.size(), 
 			outputsAsConstCharPtr.data(), outputsAsConstCharPtr.size());
-
+		std::cout << "inference elapsed: " << chrono::duration_cast<chrono::milliseconds>(std::chrono::system_clock::now() - tic).count() << "\n";
+		
 		auto outputTensor = Utils::AsSpan(onnxOutputTensor[0]);
 
 		Utils::softmax(outputTensor);

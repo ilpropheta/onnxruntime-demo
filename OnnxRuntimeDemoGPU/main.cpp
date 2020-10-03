@@ -1,19 +1,26 @@
-#include "Linear.h"
 #include <onnxruntime_cxx_api.h>
+#include <onnxruntime_c_api.h>
+#include "cuda_provider_factory.h"
 #include <array>
 #include <iostream>
 
 using namespace std;
 
-void Demo::RunLinearRegression()
+// WARNING: to run this example, you need to install cuDNN v7 on your system
+
+int main()
 {
 	// gives access to the underlying API (you can optionally customize log)
 	// you can create one environment per process (each environment manages an internal thread pool)
 	Ort::Env env;
 
-	// creates an inference session for a certain model
-	Ort::Session session{ env, LR"(data\linear.onnx)", Ort::SessionOptions{} };
+	Ort::SessionOptions session_options;
+	OrtSessionOptionsAppendExecutionProvider_CUDA(session_options, 0);
+	Ort::Session session{ env, LR"(data\linear.onnx)", session_options };
 
+	// cuda should be here
+	auto providers = Ort::GetAvailableProviders();
+	
 	// Ort::Session gives access to input and output information:
 	// - count
 	// - name

@@ -9,13 +9,9 @@ int main()
 {
 	try
 	{
-		std::cout << "ResNet 50:\n";
-		Demo::RunResNet();
-		
-		std::cout << "\n\n";
-		
-		std::cout << "MobileNet ssd lite:\n";
-		Demo::RunMobileNet();
+		Demo::RunLinearRegression();
+		//Demo::RunResNet();
+		//Demo::RunMobileNet();
 	}
 	catch (const exception& e)
 	{
