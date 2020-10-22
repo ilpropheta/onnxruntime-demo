@@ -39,7 +39,9 @@ void Demo::RunLinearRegression()
 	auto memoryInfo = Ort::MemoryInfo::CreateCpu(OrtDeviceAllocator, OrtMemTypeCPU);
 
 	// create the input tensor (this is not a deep copy!)
-	auto inputOnnxTensor = Ort::Value::CreateTensor<float>(memoryInfo, inputValues.data(), inputValues.size(), inputShape.data(), inputShape.size());
+	auto inputOnnxTensor = Ort::Value::CreateTensor<float>(memoryInfo, 
+		inputValues.data(), inputValues.size(), 
+		inputShape.data(), inputShape.size());
 
 	// the API needs the array of inputs you set and the array of outputs you get
 	array inputNames = { inputName };

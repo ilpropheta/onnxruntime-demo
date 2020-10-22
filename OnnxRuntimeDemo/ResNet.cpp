@@ -25,7 +25,7 @@ auto PreprocessImageForResNet(const cv::Mat& frame)
 
 	for (ptrdiff_t i = 0; i < 3; ++i)
 	{
-		//    norm_data[:,i,:,:]                            = (img_data[:,i,:,:]/255 - mean_vec[i])/std_vec[i]
+		//    norm_data[:,i,:,:]                            = (img_data[:,i,:,:] - mean_vec[i])/std_vec[i]
 		view(norm_data, xt::all(), i, xt::all(), xt::all()) = (view(tens, xt::all(), i, xt::all(), xt::all()) - mean_vec[i]) / std_vec[i];
 	}
 
